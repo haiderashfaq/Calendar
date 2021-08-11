@@ -57,8 +57,6 @@ class EventManager
     end
   end
 
-  private
-
   def find_event(event_id)
     @events&.find { |evnt| evnt.id == event_id }
   end

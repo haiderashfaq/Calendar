@@ -73,7 +73,6 @@ class View
       rescue StandardError
         month = 0
       end
-      puts ''
       break unless month < 1 || month > 12
 
       puts 'Error: Invalid Input!! Try Again...'
@@ -90,7 +89,6 @@ class View
       rescue StandardError
         year = -1
       end
-      puts ''
       break unless year == -1
     end
     year
