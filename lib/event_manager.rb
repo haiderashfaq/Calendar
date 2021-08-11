@@ -3,6 +3,7 @@
 require_relative 'event'
 load 'utilities.rb'
 require 'csv'
+
 # class Managing Eevets and related funcitonalities
 class EventManager
   include UTILITIES
@@ -44,6 +45,10 @@ class EventManager
 
   def total_events
     @events&.size
+  end
+
+  def all_event_ids
+    @events.collect(&:id)
   end
 
   def read_from_csv(filename)

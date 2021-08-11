@@ -8,16 +8,20 @@ class Event
   attr_accessor :date, :description, :title, :id
 
   def initialize(date, title = '', desc = '')
-    @description = desc
-    @title = title
-    @date = date
-    @id = @@next_event_id
+    @description     = desc
+    @title           = title
+    @date            = date
+    @id              = @@next_event_id
     @@next_event_id += 1
   end
 
   def update_event(date = @date, title = @title, desc = @description)
     @description = desc
-    @title = title
-    @date = date
+    @title       = title
+    @date        = date
+  end
+
+  def ==(other)
+    equal?(other)
   end
 end

@@ -7,44 +7,60 @@ require 'time'
 class View
   include UTILITIES
 
-  def print_events_on_day(events)
-    print 'Date = ', events[0].date, "\n"
+  USER_PROMPTS = {
+    title: 'Enter event title: ',
+    desc: 'Enter description: ',
+    filename: 'Enter csv filename: '
+  }.freeze
+
+  def days_of_month(month, year)
+    Date.new(year, month, -1).day
+  end
+
+  def print_events_on_day(events, date)
+    print 'Date = ', date, "\n"
     print_all_events(events)
   end
 
-  def print_events_of_month(events)
-    print 'Month = ', events[0].date.strftime("%m\n")
+  def print_events_of_month(events, month, year)
+    print 'Month = ', month, year, "\n"
     print_all_events(events)
   end
 
   def print_month_view(month, year, event_count)
-    no_of_days = Date.new(year, month, -1).day
-    weekday = Date.new(year, month, 1)
+    no_of_days         = days_of_month(month, year)
+    first_day_of_month = Date.new(year, month, 1)
 
-    puts weekday.strftime("-----%B, %Y-----\n")
-    weekday = weekday.wday
+    puts first_day_of_month.strftime("-----%B, %Y-----\n")
+    first_weekday = first_day_of_month.wday
 
     puts %w{Sun Mon Tue Wed Thu Fri Sat}.join("\t")
 
     [
-      * Array.new(weekday),
+      * Array.new(first_weekday),
       * (1..no_of_days)
     ].each_slice(7).map { |week| puts week.map { |date| '%2s' % date + '%-3s' %event_count[date] }.join("\t") }
     puts ''
   end
 
-  def user_selection(max_choices, menu_selection)
+  def menu_selection
     choice = nil
     loop do
-      print_menu if menu_selection == 'menu'
-      print_updates if menu_selection == 'update'
-      choice = begin
-        Integer(gets)
-      rescue StandardError
-        -1
-      end
+      print_menu
+      choice = gets.to_i
       puts ''
-      break unless choice.negative? || choice > max_choices
+      break if choice.negative? || choice <= 8
+    end
+    choice
+  end
+
+  def update_selection
+    choice = nil
+    loop do
+      print_updates
+      choice = gets.to_i
+      puts ''
+      break if choice.negative? || choice <= 3
     end
     choice
   end
@@ -56,7 +72,6 @@ class View
       print 'Enter Date of Event (yyyy/mm/dd) '
       date = gets
       date = str_to_date(date)
-      puts ''
       break if date
 
       puts 'Error: Invalid Input!! Try Again.....'
@@ -68,11 +83,7 @@ class View
     month = nil
     loop do
       print 'Enter month(1-12): '
-      month = begin
-        Integer(gets)
-      rescue StandardError
-        month = 0
-      end
+      month = gets.to_i
       break unless month < 1 || month > 12
 
       puts 'Error: Invalid Input!! Try Again...'
@@ -84,27 +95,19 @@ class View
     year = nil
     loop do
       print 'Enter year: '
-      year = begin
-        Integer(gets)
-      rescue StandardError
-        year = -1
-      end
-      break unless year == -1
+      year = gets.to_i
+      break unless year.negative?
     end
     year
   end
 
-  def event_id_input(total_events)
+  def event_id_input(all_event_ids)
     id = nil
     loop do
-      print 'Enter Event ID (0 to go back): '
-      id = begin
-        Integer(gets)
-      rescue StandardError
-        id = -1
-      end
+      print 'Enter Event ID (-1 to go back): '
+      id = gets.to_i
       puts ''
-      break unless id.negative? || id > total_events
+      break if id == -1 || all_event_ids.index(id)
 
       puts 'Error: Invalid Input!! Try Again...'
     end
@@ -124,32 +127,30 @@ class View
   def print_all_events(events)
     puts '%2s  ' %'ID' + '%-10s ' %'Date' + '%-10s ' %'Title' + 'Description'
     events.each do |event|
-      puts '%2s  ' % event.id + '%-10s ' % event.date + '%-10s ' % event.title + event.description
+      puts '%2s  ' % event.id + '%-10s ' % event.date + '%-10s ' % event.title[0...10] + event.description
     end
     puts ''
   end
 
-  def input(token) 
-    print 'Enter event title: ' if token == 'title'
-    print 'Enter description: ' if token == 'desc'
-    print 'Enter csv filename: ' if token == 'file'
+  def input(token)
+    print USER_PROMPTS[token]
     gets.chomp
   end
 
   private
 
   def print_menu
-    puts '============Menu==============='
-    puts '1. Print Month (Calendar Style)'
-    puts '2. Add Event'
-    puts '3. Remove Event'
-    puts '4. Update Event'
-    puts '5. Print All Events of a Month'
-    puts '6. Print All Events of a Day'
-    puts '7. Read from CSV file'
-    puts '8. Print all events on Calendar '
-    puts '0. EXIT'
-    print 'Choose an operation(0-8): '
+    puts '===============Menu=================='
+    puts ' 1. Print Month (Calendar Style)'
+    puts ' 2. Add Event'
+    puts ' 3. Remove Event'
+    puts ' 4. Update Event'
+    puts ' 5. Print All Events of a Month'
+    puts ' 6. Print All Events of a Day'
+    puts ' 7. Read from CSV file'
+    puts ' 8. Print all events on Calendar '
+    puts '-1. EXIT'
+    print 'Choose an operation(1-8/-1): '
   end
 
   def print_updates

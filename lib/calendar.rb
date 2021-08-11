@@ -7,13 +7,13 @@ require_relative 'view'
 class Calendar
   def initialize
     @events_manager = EventManager.new
-    @view = View.new
+    @view           = View.new
   end
 
   def app
     loop do
-      choice = @view.user_selection(8, 'menu')
-      break if choice.zero?
+      choice = @view.menu_selection
+      break if choice.negative?
 
       home_controller(choice)
     end
@@ -26,9 +26,9 @@ class Calendar
     year = @view.year_input
 
     no_of_events = Hash.new('')
-    (1..Date.new(year, month, -1).day).each do |day|
-      events = @events_manager.events_of_day(Date.new(year, month, day)).size
-      no_of_events[day] = '-' + events.to_s unless events.zero?
+    (1..@view.days_of_month(month, year)).each do |day|
+      events_on_a_day   = @events_manager.events_of_day(Date.new(year, month, day)).size
+      no_of_events[day] = "-#{events_on_a_day}" unless events_on_a_day.zero?
     end
     @view.print_month_view(month, year, no_of_events)
   end
@@ -47,45 +47,45 @@ class Calendar
   end
 
   def add_event
-    @events_manager.add_event(@view.get_date, @view.input('title'), @view.input('desc'))
+    @events_manager.add_event(@view.get_date, @view.input(:title), @view.input(:desc))
   end
 
   def remove_event
     print_all
-    event_id = @view.event_id_input(@events_manager.total_events)
-    result = @events_manager.remove_event(event_id)
+    event_id = @view.event_id_input(@events_manager.all_event_ids)
+    result   = @events_manager.remove_event(event_id)
     @view.operation_result(result)
   end
 
   def update_event
     print_all
-    event_id = @view.event_id_input(@events_manager.total_events)
-    return if event_id.zero?
+    event_id = @view.event_id_input(@events_manager.all_event_ids)
+    return if event_id.negative?
 
-    choice = @view.user_selection(3, 'update')
+    choice = @view.update_selection
     result = case choice
              when 1 then @events_manager.update_date(event_id, @view.get_date)
-             when 2 then @events_manager.update_title(event_id, @view.input('title'))
-             when 3 then @events_manager.update_desc(event_id, @view.input('desc'))
+             when 2 then @events_manager.update_title(event_id, @view.input(:title))
+             when 3 then @events_manager.update_desc(event_id, @view.input(:desc))
              end
     @view.operation_result(result)
   end
 
   def events_of_day
-    date = @view.get_date
+    date   = @view.get_date
     events = @events_manager.events_of_day(date)
-    @view.print_events_on_day(events)
+    @view.print_events_on_day(events, date)
   end
 
   def events_of_month
-    month = @view.month_input
-    year = @view.year_input
+    month  = @view.month_input
+    year   = @view.year_input
     events = @events_manager.events_of_month(month, year)
-    @view.print_events_of_month(events)
+    @view.print_events_of_month(events, month, year)
   end
 
   def read_from_csv
-    @events_manager.read_from_csv(@view.input('file'))
+    @events_manager.read_from_csv(@view.input(:filename))
   rescue StandardError
     @view.operation_result(false, 'Fail to read file')
   else
