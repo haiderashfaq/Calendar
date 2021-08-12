@@ -47,7 +47,8 @@ class Calendar
   end
 
   def add_event
-    @events_manager.add_event(@view.get_date, @view.input(:title), @view.input(:desc))
+    event = @events_manager.add_event(@view.get_date, @view.input(:title), @view.input(:desc))
+    @view.operation_result(event)
   end
 
   def remove_event
